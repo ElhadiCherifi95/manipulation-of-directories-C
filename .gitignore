@@ -1,18 +1,334 @@
-# Object files
-*.o
-*.ko
+#include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string.h>
+//declaration de la structure d'un element fichier
+typedef struct elt {char nomfichier[30];
+                    int jj,mm,annee;
+                    unsigned taille;
+                    struct elt *fichiersvt;}listefichier;
+//declaration de la structure d'un element repertoire
+typedef struct ELT {char nomrepertoire[30];
+                    char nomsousrepertoire1[30];
+                    char nomsousrepertoire2[30];
+                    listefichier *fichierdurepertoire;
+                    struct ELT *repertoiresvt;
+                    }repertoire;
+//Fonction qui crée la liste de fichier
+listefichier* creat_liste()
+{
+    listefichier *tete,*p,*r;int condition;
+    tete=NULL;
+    puts("Contient t'il un fichier ?! \nrepondez par 1 ou 0 \n");
+    scanf("%d",&condition);
+    while (condition==1)
+    {
+            p=(listefichier*)malloc (sizeof(listefichier));
+            printf("Donnez le nom du fichier \n");
+            scanf("%s",&(p->nomfichier));puts("\n");
+            printf("Donnez sa taille");
+            scanf("%d",&p->taille);
+            printf("Donnez sa date de creation \n");
+            do
+            {scanf("%d%d%d",&p->jj,&p->mm,&p->annee);}
+            while (p->jj<31&&p->jj>0&&p->mm>0&&p->mm<12&&p->annee>0&&p->annee>1900);
+            if (tete==NULL){tete=p;r=p;r->fichiersvt=NULL;}
+            else {r->fichiersvt=p;r=p;r->fichiersvt=NULL;}
+            printf("Ajouter un autre fichier ?! \nrepondez par 1 ou 0 \n");
+            scanf("%d",&condition);
+    }
 
-# Libraries
-*.lib
-*.a
+ return(tete);
+}
+//fonction qui crée un seul repertoire
+repertoire* creat_repertoire()
+{
+    repertoire *p;
+     p=(repertoire*)malloc (sizeof(repertoire));
+     printf("Donnez le nom du repertoire\n");
+      scanf("%s",&(p->nomrepertoire));p->repertoiresvt=NULL;
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+    (p->fichierdurepertoire)=creat_liste();
+    return(p);
+}
+//fonction qui crée la liste de repertoire
+repertoire * creat_listederepertoire()
+{
+    repertoire *tete=NULL,*p,*q,*r;
 
-# Executables
-*.exe
-*.out
-*.app
+    p=creat_repertoire();int condition;tete=p;q=p;
+
+    while(p!=NULL)
+
+    {printf("Le repertoire %s a t'il  un premier sous repertoire ?! \nRepondez par 1 ou 0 \n",p->nomrepertoire);
+
+    scanf("%d",&condition);
+
+    if (condition==1)
+
+    {//création du premier sous répértoire
+
+    r=creat_repertoire();
+
+    strcpy(p->nomsousrepertoire1,r->nomrepertoire);
+
+    q->repertoiresvt=r;q=r;
+
+    printf("Le repertoire %s a t'il  un second sous repertoire  ?! \nRepondez par 1 ou 0 \n",p->nomrepertoire);
+
+    scanf("%d",&condition);
+
+    if (condition==1)
+
+    {//création du second sous répértoire
+
+    r=creat_repertoire();
+
+    strcpy(p->nomsousrepertoire2,r->nomrepertoire);
+
+    q->repertoiresvt=r;q=r;
+
+    } else {strcpy(p->nomsousrepertoire2,"vide");}
+
+    }
+
+    else {strcpy(p->nomsousrepertoire1,"vide");strcpy(p->nomsousrepertoire2,"vide");}
+
+    p=(p->repertoiresvt);
+
+    }
+
+    puts("Creation termine !");
+
+   return(tete);
+}
+//fonction qui affiche la liste de fichier d'un repertoire
+void affichelistefichier(listefichier *tete)
+{
+    listefichier *p;
+
+    for(p=tete;p!=NULL;p=p->fichiersvt){printf("|->nom du fichier:%s\n|  taille du fichier:%d\n|  date du fichier:%d/%d/%d\n",p->nomfichier,p->taille,p->jj,p->mm,p->annee);
+                                       }
+}
+//affichage d'un repertoire donné (en montrant son arborescence
+void afficherepertoirederecherche(repertoire *t)
+{
+    repertoire *p;char mot[30];puts("Donnez le nom du repertoire a rechercher");
+    scanf("%s",&mot);
+    for(p=t;p!=NULL&&(strcmp(p->nomrepertoire,mot));p=(p->repertoiresvt));
+    if(p==NULL) printf("Repertoire inexistant\n");
+    else {
+        printf("| \n|-> %s \n| \n",p->nomsousrepertoire1);
+        printf("|---> %s \n| \n",p->nomsousrepertoire2);
+        affichelistefichier(p->fichierdurepertoire);
+    }
+}
+//Fonction qui affiche toute l'arborescence
+void affichetoutearborescence(repertoire*t)
+{
+    repertoire*p;
+    if (t==NULL) puts("Repertoire vide");
+    else for(p=t;p!=NULL;p=p->repertoiresvt)
+    {
+        printf("%s \n",(p->nomrepertoire));
+        printf("| \n|-> %s \n| \n",p->nomsousrepertoire1);
+        printf("|---> %s \n| \n",p->nomsousrepertoire2);
+        affichelistefichier(p->fichierdurepertoire);
+    }
+}
+//Fonction de recherche d'un repertoire ou fichier selon son nom
+void recherche(repertoire *t)
+{
+    repertoire *p;char mot[30];puts("Donnez le nom du repertoire a rechercher");
+
+    scanf("%s",&mot);listefichier *q;
+
+    for(p=t;p!=NULL;p=(p->repertoiresvt))
+
+    { if (!(strcmp(p->nomrepertoire,mot))) { printf("| \n|-> %s \n| \n",p->nomsousrepertoire1);
+                                            printf("|---> %s \n| \n",p->nomsousrepertoire2);
+                                            affichelistefichier(p->fichierdurepertoire);break;
+                                          }
+            for(q=p->fichierdurepertoire;q!=NULL&&(strcmp(q->nomfichier,mot));q=(q->fichiersvt));
+         if (q!=NULL) {printf("|->nom du fichier:%s\n|  taille du fichier:%d\n|  date du fichier:%d/%d/%d\n",q->nomfichier,q->taille,q->jj,q->mm,q->annee);
+                        break;}
+        }
+    if(p==NULL) printf("Repertoire ou fichier inexistant\n");
+}
+//Ajouter un fichier f dans un repertoire R donné s'il n'existe pas
+void ajoutfichier(repertoire*t)
+{   listefichier* p,*s,*r;repertoire *q;char *nomrepderech[30];
+    puts("Donnez le repertoire de recherche");
+    scanf("%s",&nomrepderech);
+    p=(listefichier*)malloc (sizeof(listefichier));
+            printf("Donnez le nom du fichier a ajouter \n");
+            scanf("%s",&(p->nomfichier));puts("\n");
+            printf("Donnez sa taille\n");
+            scanf("%d",&p->taille);
+            printf("Donnez sa date de creation \n");
+            do
+            {scanf("%d%d%d",&p->jj,&p->mm,&p->annee);}
+            while (p->jj<31&&p->jj>0&&p->mm>0&&p->mm<12&&p->annee>0&&p->annee>1900);
+    for (q=t;q!=NULL&&strcmp(q->nomrepertoire,nomrepderech);q=q->repertoiresvt);
+    if(q==NULL){puts("Repertoire inexistant");puts("\n");}
+    else { if(q->fichierdurepertoire!=NULL) {for(r=q->fichierdurepertoire,s=r;r!=NULL&&(strcmp(r->nomfichier,p->nomfichier));s=r,r=(r->fichiersvt));
+                                             if(r!=NULL)  {printf("Fichier %s existantr deja",p->nomfichier);puts("\n");}
+                                             else {s->fichiersvt=p;p->fichiersvt=NULL;printf("ajout fait avec succes\n");puts("\n");}
+                                            }
+                    else {q->fichierdurepertoire=p;p->fichiersvt=NULL;printf("Ajout fait \n");puts("\n");}
+    }
+}
+//Fonction qui supprime un fichier donné
+void supprimefichier(repertoire *t)
+{
+    repertoire *p;char *nomfichsuppr[30];listefichier *q,*r;
+    printf("Donnez le nom du fichier a supprimer\n");puts("\n");
+            scanf("%s",&nomfichsuppr);
+    for(p=t;p!=NULL;p=p->repertoiresvt)
+    {   q=p->fichierdurepertoire;
+        if(!strcmp(q->nomfichier,nomfichsuppr)) {r=q;q=q->fichiersvt;free(r);p->fichierdurepertoire=q;puts("Suppression faite ");puts("\n");break;}
+        for(r=p->fichierdurepertoire,q=p->fichierdurepertoire;(q!=NULL)&&(strcmp(q->nomfichier,nomfichsuppr));r=q,q=q->fichiersvt);
+        if (q!=NULL){r->fichiersvt=q->fichiersvt;free(q);puts("Suppression faite ");puts("\n");break;}
+    }
+    if (p==NULL){puts("Fichier inexistant");puts("\n");}
+}
+//Fonction qui renomme un fichier donné
+void renommefich(repertoire*t)
+{repertoire *p;char *nomfichrenomme[30],nvnom[30];listefichier *q;
+    printf("Donnez le nom du fichier a renommer\n");puts("\n");
+            scanf("%s",&nomfichrenomme);
+    for(p=t;p!=NULL;p=p->repertoiresvt)
+    {   q=p->fichierdurepertoire;
+        if(!strcmp(q->nomfichier,nomfichrenomme)){puts("donnez son nouveau nom\n");
+                                                  scanf("%s",&nvnom);
+                                                  strcpy(q->nomfichier,nvnom);
+                                                  puts("Fichier renommé avec succés ");puts("\n");
+                                                  break;
+                                                  }
+        for(q=p->fichierdurepertoire;(q!=NULL)&&(strcmp(q->nomfichier,nomfichrenomme));q=q->fichiersvt);
+        if (q!=NULL){puts("Donnez son nouveau nom\n");scanf("%s",&nvnom);strcpy(q->nomfichier,nvnom);puts("Fichier renomme avec succes ");puts("\n");break;}
+
+    }
+    if (p==NULL){puts("Fichier inexistant");puts("\n");}
+
+}
+//Fonction qui supprime la liste de fichier d'un repertoire
+void supprimelistefichier(listefichier *t)
+{
+    listefichier *p,*r;
+    for(p=t;p!=NULL;r=p->fichiersvt,free(p),p=r);
+    t=NULL;
+}
+// fonction Ajout d'un sous repertoire dans un repertoire donné
+void Ajoutrepertoire (repertoire *t)
+{
+    repertoire *p,*r;char nomrepper[30],*mot;mot="vide";int cond=1;
+
+    puts("Donnez le nom du repertoire pere");
+    scanf("%s",&nomrepper);
+
+    //recherche de l'existence du repertoire père
+    for(p=t;p!=NULL&&strcmp(p->nomrepertoire,nomrepper);p=p->repertoiresvt);
+
+    if (p==NULL) {puts("Repertoire inexistant");}
+        else{   puts("Donnez les proprietes du sous repertoire a inserer: \n");
+
+                r=creat_repertoire();
+
+                //recherche de la position d'insertion sous repertoire1 ou sous repertoire2
+                if (!strcmp(p->nomsousrepertoire1,mot))  strcpy(p->nomsousrepertoire1,r->nomrepertoire);
+                    else if (!strcmp(p->nomsousrepertoire2,mot)) strcpy(p->nomsousrepertoire2,r->nomrepertoire);
+                            else {puts("Ce repertoire est remplis impossible d'ajouter");free(r);cond=0;}
+
+                if (cond)
+                {//insertion a la fin du repertoire avec ses sous repertoire mis a "vide"
+                for(p=t;p->repertoiresvt!=NULL;p=p->repertoiresvt);
+                p->repertoiresvt=r;
+                strcpy(r->nomsousrepertoire1,mot);
+                strcpy(r->nomsousrepertoire2,mot);
+                }
+            }
+}
+
+//fonction supprime un repertoire
+void supprimerepertoire(repertoire **t)
+{
+  repertoire *p,*r;char nomrepsuppr[30],*mot;mot="vide";
+  puts("Donnez le nom du repertoire a supprimer");
+  scanf("%s",&nomrepsuppr);
+
+  //remplacer le champ nomsousrepertoire1 par vide
+  for(p=*t;p!=NULL&&strcmp(p->nomsousrepertoire1,nomrepsuppr);p=p->repertoiresvt);
+  if (p!=NULL) strcpy(p->nomsousrepertoire1,mot);
+
+  //remplacer le champ nomsousrepertoire2 par vide
+  for(p=*t;p!=NULL&&strcmp(p->nomsousrepertoire2,nomrepsuppr);p=p->repertoiresvt);
+  if (p!=NULL) strcpy(p->nomsousrepertoire2,mot);
+
+  //recherche du fichier a supprimer ainsi que sa supression
+  for(r=*t,p=*t;p!=NULL&&strcmp(p->nomrepertoire,nomrepsuppr);r=p,p=p->repertoiresvt);
+  if(p==NULL) puts("Fichier inexstant \n");
+    else{//Cas de la tête a supprimer
+         if (p==*t) {*t=p->repertoiresvt;free(p);puts("Suppresion faite avec succes");}
+         else {r->repertoiresvt=p->repertoiresvt;
+         supprimelistefichier(p->fichierdurepertoire);
+         free(p);puts("Suppresion faite avec succes");}
+        }
+}
+void main()
+{
+    repertoire*tete;int indice;
+    printf("                  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°\n");
+    printf("                  °             BIENVENUE!                °\n");
+    printf("                  °TP :Manipulation de structure dynamique°\n");
+    printf("                  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°\n");
+    printf("\n\n");
+    printf("                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    printf("                  ~~      CHERIFI MOHAMED EL HADI        ~~\n");
+    printf("                  ~~                                     ~~\n");
+    printf("                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    do
+    {           printf("         *********************************************************************\n");
+                printf("         *Voici les fonctions indexe que vous pouvez utiliser                *\n");
+                printf("         *                                                                   *\n");
+                printf("         *1:Creation de la structure                                         *\n");
+                printf("         *                                                                   *\n");
+                printf("         *2:Afficher le contenu d'un repertoire donne                        *\n");
+                printf("         *                                                                   *\n");
+                printf("         *3:Afficher toute l'arborescence                                    *\n");
+                printf("         *                                                                   *\n");
+                printf("         *4:recherche fichier(ou repertoire)et afficher ses proprietes       *\n");
+                printf("         *                                                                   *\n");
+                printf("         *5:Ajouter un fichier F dans un repertoire R donne s'il n'existe pas*\n");
+                printf("         *                                                                   *\n");
+                printf("         *6:Supprimer un fichier F donne d'un repertoire                     *\n");
+                printf("         *                                                                   *\n");
+                printf("         *7:Renommer un fichier F donne                                      *\n");
+                printf("         *                                                                   *\n");
+                printf("         *8:Ajout d'un sous repertoire dans un repertoire donné              *\n");
+                printf("         *                                                                   *\n");
+                printf("         *9:Supprimer un repertoire (si il existe )                          *\n");
+                printf("         *                                                                   *\n");
+                printf("         *0:quitter                                                          *\n");
+                printf("         *********************************************************************\n");
+                printf("Donnez  l'indice de la fonction que vous voulez utiliser\n");
+                printf("\n");
+                scanf("%d",&indice);
+
+    switch (indice)
+    {
+        case 0 :puts("Quitter!\n");break;
+        case 1 :printf("vous avez choisi 1:Creation de la structure \n");printf("\n");tete=creat_listederepertoire();break;
+        case 2 :printf("vous avez choisi 2:Afficher le contenu d'un repertoire donne\n");printf("\n");afficherepertoirederecherche(tete);break;
+        case 3 :printf("vous avez choisi 3:Afficher toute l'arborescence\n");printf("\n");affichetoutearborescence(tete);break;
+        case 4 :printf("vous avez choisi 4:recherche fichier(ou repertoire)et afficher ses propriétés\n");printf("\n");recherche(tete);break;
+        case 5 :printf("vous avez choisi 5:Ajouter un fichier f dans un repertoire R donné s'il n'existe pas\n");printf("\n");ajoutfichier(tete);break;
+        case 6 :printf("vous avez choisi 6:Supprimer un fichier F donne d'un repertoire\n");printf("\n");supprimefichier(tete);break;
+        case 7 :printf("vous avez choisi 7:Renommer un fichier F donné");printf("\n");renommefich(tete);break;
+        case 8 :printf("vous avez choisi 8:Ajout d'un sous repertoire dans un repertoire donné\n");printf("\n");Ajoutrepertoire(tete);break;
+        case 9 :printf("vous avez choisi 9:Supprimer un repertoire (si il existe )");printf("\n");supprimerepertoire(&tete);break;
+        default:printf ("erreur d'indice de fonction !! ");printf("\n");
+    }
+    }
+    while (indice);
+}
